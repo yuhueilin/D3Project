@@ -1,0 +1,499 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>林育慧D3-Project</title>
+    <script src="https://d3js.org/d3.v3.js"></script>
+    <style>
+    * {
+        font-family: Microsoft JhengHei, Arial;
+    }
+    
+    div#Project {
+        margin-top: 3em;
+        margin-bottom: 0em;
+        margin-left: 4em;
+        margin-right: 3em;
+    }
+    
+    div.left {
+        font-size: 11px;
+        margin-left: 5.5em;
+        display: inline-block;
+    }
+    
+    div.right {
+        font-size: 11px;
+        margin-left: 35.5em;
+        display: inline-block;
+    }
+        
+    form , input {
+            font-size: 11px;
+            left: 10px;
+            top: 10px;
+        }    
+    
+    .axis text {
+        font: 10px sans-serif;
+        font-size: 11px;
+    }
+    
+    .axis line,
+    .axis path {
+        fill: none;
+        stroke: dimgray;
+        shape-rendering: auto;
+        /*crispEdges;*/
+    }
+    
+    .axis text,
+    .yxis text {
+        font-size: 11px;
+        fill: dimgray;
+    }
+    </style>
+</head>
+
+
+
+<body>
+    <div id="Project">
+    </div>
+    <div class="left">
+        <input type="submit" onclick="SubData()" value="Submit">
+        <input type="submit" onclick="clean()" value="Clean">
+    </div>
+    <div class="right">
+        <form>
+            <label>
+                <input type="radio" name="mode" value="grouped"> Grouped</label>
+            <label>
+                <input type="radio" name="mode" value="stacked" checked> Stacked</label>
+        </form>
+    </div>
+
+
+    <script>
+        
+        
+        // 1. 定義變數
+        var width = 1200,
+            height = 560;
+        var Lsize= 0.45,
+            Rsize= 0.55;
+        var Lcolor= "#eee",
+            Rcolor= "lavender";
+        
+        //1.1
+        var packsize = height * 0.82,
+            packx = 40,
+            packy = 55;
+        
+        var Circolor="#9e9ac8"
+            Circolor_pick="#5254a3",
+            Circolor_fill="#eee",    
+            Circolor_opacity= 1;
+        
+        var n = []; //用以紀錄選擇銀行清單
+        
+        //1.2
+        var amtType = ["transactions", "revolving", "installment"],
+            amtType_n = amtType.length;
+
+        var parseDate = d3.time.format("%Y/%m").parse;
+        
+        var p2 = 40,
+            w2 = width * Rsize - 2 * p2,
+            h2 = height - 2 * p2;
+        
+        var month=3;
+
+
+
+        //2. 建立svg()畫布環境
+        svg(1, width * Lsize, height, Lcolor);
+        svg(2, width * Rsize, height, Rcolor);
+
+        function svg(i, w, h, color) {
+            d3.select("div#Project").append("svg")
+                .attr({
+                    id: "svg" + i,
+                    width: w,
+                    height: h
+                })
+                .style({
+                    "background-color": color
+                });
+        }
+
+
+
+        //3. 用d3讀取csv
+        //3.1 Bubble-Chart
+        d3.csv("credit.csv", function (dataSet) {
+            
+            console.log("dataSet",dataSet);
+            
+            var datafilter = dataSet.filter(function (d) {
+                return d.date === "2016/10";
+            });
+            
+            console.log("datafilter",datafilter);
+
+            var dataobj = {
+                children: datafilter
+            };
+
+            var pack = d3.layout.pack();
+            pack = pack.padding(2).size([packsize, packsize]);
+
+            var nodes = pack.nodes(dataobj);
+            nodes = nodes.filter(function (d) {
+                return d.parent;
+            }); //去除parent層
+
+            bind1(nodes);
+            render1(nodes);
+        });
+
+        
+        //4. 建立bind()
+        //4.1 Bubble-Chart bind()
+        function bind1(dataSet) {
+            var selection = d3.select("#svg1")
+                .selectAll("circle")
+                .data(dataSet);
+
+            selection.enter().append("circle");
+            selection.exit().remove();
+
+            var selection_text = d3.select("#svg1")
+                .selectAll("text")
+                .data(dataSet);
+
+            selection_text.enter().append("text");
+            selection_text.exit().remove();
+        }
+
+        //5. 定義比例尺
+        //6. 建立render()繪圖
+        function render1(dataSet) {
+
+            //5.1 定義Bubble-Chart 比例尺
+            var fsScale1 = d3.scale.linear()
+                .domain(d3.extent(dataSet, function (d) {
+                    return d.value;
+                }))
+                .rangeRound([10, 30]);
+
+            //6.1 Bubble-Chart render()繪圖
+            d3.select("#svg1")
+                .selectAll("circle") // 建立 circle 的 Selection
+                .attr({
+                    cx: function (d) {
+                        return d.x;
+                    },
+                    cy: function (d) {
+                        return d.y;
+                    },
+                    r: function (d) {
+                        return d.r;
+                    }, // 用 r 當半徑    
+                    fill: Circolor,
+//                    stroke: Circolor,
+                    opacity: Circolor_opacity
+                })
+                .attr("transform", "translate(" + packx + "," + packy + ")")
+                .on("click", function (d) {
+                    d3.select(this).attr({
+                        fill: Circolor_pick,
+                        opacity: Circolor_opacity
+                    });
+                    if (n.indexOf(d.bank) === -1) {
+                        return n.push(d.bank);
+                    };
+                })
+                .on("dblclick", function (d) {
+                    d3.select(this).attr({
+                        fill: Circolor,
+                        opacity: Circolor_opacity
+                    });
+                    if (n.indexOf(d.bank) > -1) {
+                        return n.splice(n.indexOf(d.bank), 1)
+                    };
+                });
+                console.log("n",n);
+
+
+            var valueAll = dataSet.map(function (d) {
+                return +d.value;
+            });
+            var valueSort = valueAll.sort(function (a, b) {
+                return b - a;
+            });
+
+            d3.select("#svg1").selectAll("text")
+                .attr({
+                    x: function (d) {
+                        return d.x;
+                    },
+                    y: function (d) {
+                        return d.y + 10;
+                    },
+                    fill: Circolor_fill,
+                    "text-anchor": "middle", // 文字水平置中
+                    "font-size": function (d) {
+                        return fsScale1(d.value);
+                    },
+                    "font-weight": 800
+                })
+                .attr("transform", "translate(" + packx + "," + packy + ")")
+                .text(function (d) {
+                    return (d.value >= valueSort[9] ? d.bank : ""); //top10才顯示text
+                });
+        }
+        
+        function clean(){
+            n=[];
+            d3.select("#svg1").selectAll("circle").attr({fill: Circolor});
+            d3.select("#svg2").selectAll("g").remove();
+        };
+        
+        ////////////////////////////////////////////////////////////////////
+        //3. 用d3讀取csv
+        //3.2 Stacked-to-Grouped
+        SubData();
+
+        function SubData() {
+            console.log("n",n);
+            d3.select("#svg2").selectAll("g").remove();
+            
+            if (n.length > 0) {
+                d3.csv("creditcard.csv", type, function (dataSet) {
+
+                    if (n.length > 1) {
+                        console.log("A");
+                        //filter
+                        var bankTemp = dataSet.filter(function (d) {
+                            return d3.time.format("%Y/%m")(d.date) === "2016/10";
+                        });
+                        var bankData = bankTemp.filter(function (d) {
+                            return ~this.indexOf(d.bank);
+                        }, n);
+                        //layout
+                        var bankLayers = d3.layout.stack()(amtType.map(function (c, i) {
+                            return bankData.map(function (d) {
+                                return {
+                                    gp: i,
+                                    z: d.date,
+                                    x: d.bank,
+                                    y: d[c]
+                                };
+                            });
+                        }));
+//                        console.log("bankTemp",bankTemp);
+//                        console.log("bankData",bankData);
+//                        console.log("bankData",bankLayers);
+
+                    } else {
+                        console.log("B");
+                        //filter
+                        var bankData = dataSet.filter(function (d) {
+                            return d.bank === n[0];
+                        });
+
+                        //layout
+                        var bankLayers = d3.layout.stack()(amtType.map(function (c, i) {
+                            return bankData.map(function (d) {
+                                return {
+                                    gp: i,
+                                    z: d.bank,
+                                    x: d.date,
+                                    y: d[c]
+                                };
+                            });
+                        }));
+//                        console.log("bankData",bankData);
+//                        console.log("bankData",bankLayers);
+                    };
+  
+                    BindRender(bankLayers, w2, h2, p2)
+                });
+            }
+        }
+
+
+
+
+        //4. 建立bind()
+        //5. 定義比例尺
+        //6. 建立render()繪圖/動畫
+        function BindRender(dataSet, w, h, p) {
+            //4.2 Stacked-to-Grouped bind()    
+            var cScale = d3.scale.category20b();
+
+            var layer = d3.select("#svg2").selectAll(".layer")
+                .data(dataSet)
+                .attr({
+                    class: layer,
+                    fill: function (d, i) {
+                        return cScale(i);
+                    }
+                });
+
+            layer.enter().append("g")
+                .attr("class", "layer")
+                .style({
+                    fill: function (d, i) {
+                        return cScale(i);
+                    }
+                });
+            layer.exit().remove();
+
+
+            var rect = layer.selectAll("rect")
+                .data(function (d) {
+                    return d;
+                });
+
+            rect.enter().append("rect");
+            rect.exit().remove();
+
+            
+            //5.2 定義Stacked-to-Grouped比例尺
+            var xScale = d3.scale.ordinal()
+                .rangeRoundBands([p, w - p]);
+
+            var yScale = d3.scale.linear()
+                .rangeRound([h - p, p]);
+
+            xScale.domain(dataSet[0].map(function (d) {
+                return d.x;
+            }));
+
+            yScale.domain([0, d3.max(dataSet[dataSet.length - 1], function (d) {
+                return d.y0 + d.y;
+            })]).nice();
+
+            if(n.length>1) {
+            var xAxis = d3.svg.axis()
+                .scale(xScale)
+                .orient("bottom");    
+                
+            }
+            else {
+            var xAxis = d3.svg.axis()
+                .scale(xScale)
+                .orient("bottom")
+                .tickValues(xScale.domain().filter(function(d, i) { return !(i % month); }))
+                .tickFormat(d3.time.format("%Y %b"));    
+            }
+            
+            var yAxis = d3.svg.axis()
+                .scale(yScale)
+                .orient("left");
+
+            var svg = d3.select("#svg2")
+                .append("g")
+                .attr("transform", "translate(" + 0 + "," + 0 + ")");
+
+            svg.append("g")
+                .attr("id", "axisX")
+                .attr("class", "axis")
+                .attr("transform", "translate(" + (2 * p) + "," + (h + p - 20) + ")")
+                .call(xAxis);
+
+            svg.append("g")
+                .attr("id", "axisY")
+                .attr("class", "axis")
+                .attr("transform", "translate(" + (2 * p + 20) + "," + (p) + ")")
+                .call(yAxis);
+
+
+            //6.2 Stacked-to-Grouped render()繪圖
+            rect.attr("x", function (d) {
+                    return xScale(d.x) + 2 * p;
+                }).attr("y", (h + p - 10))
+                .attr("height", 0)
+                .attr("width", xScale.rangeBand() - 2);
+
+            rect.transition()
+                .delay(function (d, i) {
+                    return i * 10;
+                })
+                .attr("y", function (d) {
+                    return yScale(d.y + d.y0) + p;
+                })
+                .attr("height", function (d) {
+                    return yScale(d.y0) - yScale(d.y + d.y0);
+                });
+
+
+
+
+            //6.2 Stacked-to-Grouped render()動畫
+            d3.selectAll("input").on("change", function () {
+                if (this.value === "grouped") {
+                    transitionGrouped();
+                } else {
+                    transitionStacked();
+                }
+            });
+
+
+            function transitionGrouped() {
+                rect.transition()
+                    .duration(500)
+                    .delay(function (d, i) {
+                        return i * 10;
+                    })
+                    .attr("x", function (d, i) {
+                        return xScale(d.x) + 2 * p +
+                            (xScale.rangeBand() - 2) / amtType_n * d.gp;
+                    })
+                    .attr("width", (xScale.rangeBand() - 2) / amtType_n)
+                    .transition()
+                    .attr("y", function (d) {
+                        return yScale(d.y) + p;
+                    })
+                    .attr("height", function (d) {
+                        return yScale(0) - yScale(d.y);
+                    });
+            }
+
+            function transitionStacked() {
+                rect.transition()
+                    .duration(500)
+                    .delay(function (d, i) {
+                        return i * 10;
+                    })
+                    .attr("y", function (d) {
+                        return yScale(d.y + d.y0) + p;
+                    })
+                    .attr("height", function (d) {
+                        return yScale(d.y0) - yScale(d.y + d.y0);
+                    })
+                    .transition()
+                    .attr("x", function (d, i) {
+                        return xScale(d.x) + 2 * p;
+                    })
+                    .attr("width", (xScale.rangeBand() - 2));
+            }
+        }
+
+        //其他函數
+        function type(d) {
+            d.date = parseDate(d.date);
+            amtType.forEach(function (c) {
+                d[c] = +d[c];
+            });
+            return d;
+        }
+        
+    </script>
+</body>
+
+</html>
