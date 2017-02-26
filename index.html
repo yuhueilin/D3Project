@@ -6,8 +6,14 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>林育慧D3-Project</title>
     <script src="https://d3js.org/d3.v3.js"></script>
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js" integrity="sha256-xNjb53/rY+WmG+4L6tTl9m6PpqknWZvRt0rO1SRnJzw=" crossorigin="anonymous"></script>
+    <!--
     <script src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.10.4/jquery-ui.min.js"></script>
+    <script
+
+-->
     <style>
         * {
             font-family: Microsoft JhengHei, Arial;
@@ -410,9 +416,9 @@
                                 };
                             });
                         }));
-                                                console.log("bankTemp",bankTemp);
-                                                console.log("bankData",bankData);
-                                                console.log("bankData",bankLayers);
+                        console.log("bankTemp", bankTemp);
+                        console.log("bankData", bankData);
+                        console.log("bankData", bankLayers);
 
                     } else {
                         console.log("B");
@@ -477,9 +483,9 @@
 
             rect.enter().append("rect");
             rect.exit().remove();
-            
-            
-            
+
+
+
             //5.2 定義Stacked-to-Grouped比例尺
             var xScale = d3.scale.ordinal()
                 .domain(dataSet[0].map(function (d) {
