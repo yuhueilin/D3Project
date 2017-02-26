@@ -6,119 +6,209 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>林育慧D3-Project</title>
     <script src="https://d3js.org/d3.v3.js"></script>
+    <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="http://code.jquery.com/ui/1.10.4/jquery-ui.min.js"></script>
     <style>
-    * {
-        font-family: Microsoft JhengHei, Arial;
-    }
-    
-    div#Project {
-        margin-top: 3em;
-        margin-bottom: 0em;
-        margin-left: 4em;
-        margin-right: 3em;
-    }
-    
-    div.left {
-        font-size: 11px;
-        margin-left: 4em;
-        display: inline-block;
-    }
-    
-    div.right {
-        font-size: 11px;
-        margin-left: 26em;
-        display: inline-block;
-    }
+        * {
+            font-family: Microsoft JhengHei, Arial;
+        }
         
-    form , input {
+        div#Project {
+            /*            margin-top: 3em;*/
+            margin-bottom: 0em;
+            margin-left: 4em;
+            margin-right: 3em;
+        }
+        
+        div#ac {
+            margin-left: 4em;
+            width: 300px;
+        }
+        
+        #ac p {
+            font-size: 13px;
+            border-radius: 2px;
+            height: 25px;
+            line-height: 25px;
+            /*            border: 1px solid lightgray;*/
+            /*            color: #9e9ac8;*/
+        }
+        
+        #ac ol {
+            font-size: 10px;
+            border-radius: 2px;
+            height: 25px;
+            line-height: 25px;
+        }
+        
+        div {
+            display: inline-block;
+        }
+        
+        div#prj1,
+        div#prj2 {
+            /*            display: inline-block;*/
+            font-size: 11px;
+            margin: 0px;
+            padding: 0px;
+        }
+        
+        div.svg1,
+        div.svg2 {
+            margin: 0px;
+            padding: 0px;
+        }
+        
+        div.left,
+        div.right {
+            /*            display: inline-block;*/
+            margin: 0px;
+            padding: 0px;
+        }
+        
+        labal,
+        input {
+            display: inline-block;
+        }
+        
+        form,
+        input {
             font-size: 11px;
             left: 10px;
             top: 10px;
-        }    
-    
-    .axis text {
-        font: 10px sans-serif;
-        font-size: 11px;
-    }
-    
-    .axis line,
-    .axis path {
-        fill: none;
-        stroke: dimgray;
-        shape-rendering: auto;
-        /*crispEdges;*/
-    }
-    
-    .axis text,
-    .yxis text {
-        font-size: 11px;
-        fill: dimgray;
-    }
+        }
+        /*
+        input {
+            width: 60px;
+        }
+*/
+        
+        .myMOUSE {
+            cursor: pointer;
+        }
+        
+        .axis text {
+            font: 10px sans-serif;
+            font-size: 11px;
+        }
+        
+        .axis line,
+        .axis path {
+            fill: none;
+            stroke: dimgray;
+            shape-rendering: auto;
+            /*crispEdges;*/
+        }
+        
+        .axis text,
+        .yxis text {
+            font-size: 11px;
+            fill: dimgray;
+        }
     </style>
 </head>
 
 
 
 <body>
+    <div id="ac">
+        <p>&nbsp;&nbsp;<strong>Important Credit Card Business and Financial Information</strong>&nbsp;(Click here for detail description)</p>
+        <div id="ac1">
+            <ol>
+                <li>&nbsp;&nbsp;資料來源:&nbsp;<a href="http://www.banking.gov.tw/en/home.jsp?id=21&parentpath=0,6" (target="_blank" )>金管會銀行局</a></li>
+                <li>&nbsp;&nbsp;選取多家金融機構送出資料,即可比較各金融機構最新月份信用卡餘額資訊</li>
+                <li>&nbsp;&nbsp;選取單一金融機構送出資料,即可觀察其2015~2016信用卡餘額趨勢變化</li>
+                <br>
+            </ol>
+        </div>
+    </div>
     <div id="Project">
+        <div id="Prj1">
+            <div class="svg1"></div>
+            <div class="left">
+                <input type="submit" onclick="SubData()" value="Submit">
+                <input type="submit" onclick="Clean()" value="Clean">
+            </div>
+        </div>
+        <div id="Prj2">
+            <div class="svg2"></div>
+            <div class="right">
+                <form>
+                    <label>
+                        <input type="radio" name="mode" value="grouped"> Grouped </label>
+                    <label>
+                        <input type="radio" name="mode" value="stacked" checked> Stacked</label>
+                </form>
+            </div>
+        </div>
     </div>
-    <div class="left">
-        <input type="submit" onclick="SubData()" value="Submit">
-        <input type="submit" onclick="clean()" value="Clean">
-    </div>
-    <div class="right">
-        <form>
-            <label>
-                <input type="radio" name="mode" value="grouped"> Grouped</label>
-            <label>
-                <input type="radio" name="mode" value="stacked" checked> Stacked</label>
-        </form>
-    </div>
-
 
     <script>
-        
-        
+        //說明
+        $(function () {
+            $('#ac').accordion({
+                active: 1,
+                collapsible: true,
+                event: "click",
+                heightStyle: "content"
+            });
+        });
+    </script>
+
+    <script>
         // 1. 定義變數
-        var width = 1200,
-            height = 560;
-        var Lsize= 0.45,
-            Rsize= 0.55;
-        var Lcolor= "#eee",
-            Rcolor= "lavender";
-        
+        var Lsize = 0.45, //以%方式進行後續畫面設定
+            Rsize = 0.55;
+        var width = 1100,
+            height = width * Lsize;
+
+        var Lcolor = "#eee",
+            Rcolor = "lavender";
+
         //1.1
-        var packsize = height * 0.82,
-            packx = 40,
-            packy = 55;
-        
-        var Circolor="#9e9ac8"
-            Circolor_pick="#5254a3",
-            Circolor_fill="#eee",    
-            Circolor_opacity= 1;
-        
+        var packsize = height * 0.85,
+            packtrsX = height * 0.15 / 2,
+            packtrsY = height * 0.15 / 2;
+
+        var Circolor = "#9e9ac8",
+            Circolor_pick = "#5254a3",
+            Circolor_fill = "#eee",
+            Circolor_opacity = 1;
+
         var n = []; //用以紀錄選擇銀行清單
-        
+
         //1.2
         var amtType = ["transactions", "revolving", "installment"],
             amtType_n = amtType.length;
 
         var parseDate = d3.time.format("%Y/%m").parse;
-        
+        //Date.parse() : https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse
+
         var p2 = 40,
             w2 = width * Rsize - 2 * p2,
             h2 = height - 2 * p2;
-        
-        var month=3;
+
+        var month = 3;
 
 
 
-        //2. 建立svg()畫布環境
+        //2. 建立說明框 & svg()畫布環境 
+        d3.select("div#ac").style({
+            "width": (width + 5) + "px"
+        });
+        d3.select("#ac>p").style({
+            background: Lcolor
+        });
+
         svg(1, width * Lsize, height, Lcolor);
         svg(2, width * Rsize, height, Rcolor);
 
         function svg(i, w, h, color) {
-            d3.select("div#Project").append("svg")
+            d3.select("div#Prj" + i).style({
+                "max-width": w + "px"
+            });
+
+            d3.select("div#Prj" + i + " .svg" + i).append("svg")
                 .attr({
                     id: "svg" + i,
                     width: w,
@@ -133,25 +223,25 @@
 
         //3. 用d3讀取csv
         //3.1 Bubble-Chart
-        d3.csv("credit.csv", function (dataSet) {
-            
-            console.log("dataSet",dataSet);
-            
+        d3.csv("creditcard.csv", row, function (dataSet) {
+
+            //console.log("dataSet", dataSet);
+
             var datafilter = dataSet.filter(function (d) {
-                return d.date === "2016/10";
-            });
-            
-            console.log("datafilter",datafilter);
+                return Date.parse(d.date) === d3.max(dataSet, function (t) {
+                    return Date.parse(t.date);
+                });
+            }); //取最新月份資料
+
+            // console.log("datafilter", datafilter);
 
             var dataobj = {
                 children: datafilter
             };
 
-            var pack = d3.layout.pack();
-            pack = pack.padding(2).size([packsize, packsize]);
+            var pack = d3.layout.pack().padding(12).size([packsize, packsize]); //決定cx,cy,cr
 
-            var nodes = pack.nodes(dataobj);
-            nodes = nodes.filter(function (d) {
+            var nodes = pack.nodes(dataobj).filter(function (d) {
                 return d.parent;
             }); //去除parent層
 
@@ -159,7 +249,16 @@
             render1(nodes);
         });
 
-        
+        function row(d) {
+            //轉換資料型態
+            d.date;
+            d.bank;
+            d.bank_nm;
+            d.value = (+d.transactions) + (+d.revolving) + (+d.installment);
+
+            return d;
+        }
+
         //4. 建立bind()
         //4.1 Bubble-Chart bind()
         function bind1(dataSet) {
@@ -191,8 +290,9 @@
 
             //6.1 Bubble-Chart render()繪圖
             d3.select("#svg1")
-                .selectAll("circle") // 建立 circle 的 Selection
+                .selectAll("circle") // 建立 circle 的 Selection                
                 .attr({
+                    class: "myMOUSE",
                     cx: function (d) {
                         return d.x;
                     },
@@ -201,39 +301,46 @@
                     },
                     r: function (d) {
                         return d.r;
-                    }, // 用 r 當半徑    
+                    },
                     fill: Circolor,
-//                    stroke: Circolor,
-                    opacity: Circolor_opacity
+                    "stroke-width": 3,
+                    stroke: Circolor
                 })
-                .attr("transform", "translate(" + packx + "," + packy + ")")
+                .attr("transform", "translate(" + packtrsX + "," + packtrsY + ")")
                 .on("click", function (d) {
-                    d3.select(this).attr({
-                        fill: Circolor_pick,
-                        opacity: Circolor_opacity
-                    });
-                    if (n.indexOf(d.bank) === -1) {
-                        return n.push(d.bank);
-                    };
-                })
-                .on("dblclick", function (d) {
-                    d3.select(this).attr({
-                        fill: Circolor,
-                        opacity: Circolor_opacity
-                    });
-                    if (n.indexOf(d.bank) > -1) {
-                        return n.splice(n.indexOf(d.bank), 1)
-                    };
+                    if (d3.select(this).attr("fill") === Circolor) {
+
+                        d3.select(this).attr({
+                            fill: Circolor_pick,
+                            "stroke-width": 3,
+                            stroke: "lightgray"
+                        });
+
+                        if (n.indexOf(d.bank) === -1) {
+                            return n.push(d.bank);
+                        };
+                    } else {
+
+                        d3.select(this).attr({
+                            fill: Circolor,
+                            "stroke-width": 3,
+                            stroke: Circolor
+                        });
+
+                        if (n.indexOf(d.bank) > -1) {
+                            return n.splice(n.indexOf(d.bank), 1)
+                        };
+                    }
                 });
-                console.log("n",n);
 
 
-            var valueAll = dataSet.map(function (d) {
-                return +d.value;
-            });
-            var valueSort = valueAll.sort(function (a, b) {
-                return b - a;
-            });
+
+            var valueSort = dataSet.map(function (d) {
+                    return +d.value;
+                })
+                .sort(function (a, b) {
+                    return d3.descending(a.value, b.value);
+                });
 
             d3.select("#svg1").selectAll("text")
                 .attr({
@@ -250,27 +357,36 @@
                     },
                     "font-weight": 800
                 })
-                .attr("transform", "translate(" + packx + "," + packy + ")")
+                .attr("transform", "translate(" + packtrsX + "," + packtrsY + ")")
                 .text(function (d) {
-                    return (d.value >= valueSort[9] ? d.bank : ""); //top10才顯示text
+                    return (d.value >= valueSort[9] ? d.bank : ""); //Top10才顯示text
                 });
         }
-        
-        function clean(){
-            n=[];
-            d3.select("#svg1").selectAll("circle").attr({fill: Circolor});
+
+        function Clean() {
+            n = [];
+            d3.select("#svg1").selectAll("circle").attr({
+                fill: Circolor,
+                "stroke-width": 3,
+                stroke: Circolor
+            });
+            d3.select("input[value=\"stacked\"]").property("checked", true);
             d3.select("#svg2").selectAll("g").remove();
         };
-        
+
+
+
+
         ////////////////////////////////////////////////////////////////////
         //3. 用d3讀取csv
         //3.2 Stacked-to-Grouped
         SubData();
 
         function SubData() {
-            console.log("n",n);
+            console.log("n", n);
+            d3.select("input[value=\"stacked\"]").property("checked", true);
             d3.select("#svg2").selectAll("g").remove();
-            
+
             if (n.length > 0) {
                 d3.csv("creditcard.csv", type, function (dataSet) {
 
@@ -294,9 +410,9 @@
                                 };
                             });
                         }));
-//                        console.log("bankTemp",bankTemp);
-//                        console.log("bankData",bankData);
-//                        console.log("bankData",bankLayers);
+                                                console.log("bankTemp",bankTemp);
+                                                console.log("bankData",bankData);
+                                                console.log("bankData",bankLayers);
 
                     } else {
                         console.log("B");
@@ -316,10 +432,10 @@
                                 };
                             });
                         }));
-//                        console.log("bankData",bankData);
-//                        console.log("bankData",bankLayers);
+                        //                        console.log("bankData",bankData);
+                        //                        console.log("bankData",bankLayers);
                     };
-  
+
                     BindRender(bankLayers, w2, h2, p2)
                 });
             }
@@ -361,37 +477,38 @@
 
             rect.enter().append("rect");
             rect.exit().remove();
-
+            
+            
             
             //5.2 定義Stacked-to-Grouped比例尺
             var xScale = d3.scale.ordinal()
+                .domain(dataSet[0].map(function (d) {
+                    return d.x;
+                }))
                 .rangeRoundBands([p, w - p]);
 
             var yScale = d3.scale.linear()
+                .domain([0, d3.max(dataSet[dataSet.length - 1], function (d) {
+                    return d.y0 + d.y;
+                })]).nice()
                 .rangeRound([h - p, p]);
 
-            xScale.domain(dataSet[0].map(function (d) {
-                return d.x;
-            }));
 
-            yScale.domain([0, d3.max(dataSet[dataSet.length - 1], function (d) {
-                return d.y0 + d.y;
-            })]).nice();
+            if (n.length > 1) {
+                var xAxis = d3.svg.axis()
+                    .scale(xScale)
+                    .orient("bottom");
 
-            if(n.length>1) {
-            var xAxis = d3.svg.axis()
-                .scale(xScale)
-                .orient("bottom");    
-                
+            } else {
+                var xAxis = d3.svg.axis()
+                    .scale(xScale)
+                    .orient("bottom")
+                    .tickValues(xScale.domain().filter(function (d, i) {
+                        return !(i % month);
+                    }))
+                    .tickFormat(d3.time.format("%Y %b"));
             }
-            else {
-            var xAxis = d3.svg.axis()
-                .scale(xScale)
-                .orient("bottom")
-                .tickValues(xScale.domain().filter(function(d, i) { return !(i % month); }))
-                .tickFormat(d3.time.format("%Y %b"));    
-            }
-            
+
             var yAxis = d3.svg.axis()
                 .scale(yScale)
                 .orient("left");
@@ -430,7 +547,6 @@
                 .attr("height", function (d) {
                     return yScale(d.y0) - yScale(d.y + d.y0);
                 });
-
 
 
 
@@ -492,7 +608,6 @@
             });
             return d;
         }
-        
     </script>
 </body>
 
